@@ -7,7 +7,7 @@ const cors = require("cors");
 app.use(cors({ credentials: true, origin: true }));
 
 // Database connection
-const connectDatabase = require("./models/database").connectDatabase;
+const { connectDatabase } = require("./models/database");
 connectDatabase();
 
 // Logger
@@ -25,8 +25,8 @@ app.use(cookieParser());
 
 app.use(
   session({
-    resave: false, // Set to false unless you have a specific reason to set it to true
-    saveUninitialized: false, // Set to false to comply with laws that require permission before setting a cookie
+    resave: false,
+    saveUninitialized: false,
     secret: process.env.EXPRESS_SESSION_SECRET,
     cookie: {
       secure: false, // Set to true if using HTTPS
@@ -47,10 +47,22 @@ app.use("/employe", require("./routes/employeRoutes"));
 // Error handling
 const ErrorHandler = require("./utils/ErrorHandler");
 const { generatedErrors } = require("./middlewares/errors");
+
 app.all("*", (req, res, next) => {
   next(new ErrorHandler(`URL not found: ${req.originalUrl}`, 404));
 });
+
 app.use(generatedErrors);
+
+// Test route to verify MongoDB connection
+app.get('/test-connection', async (req, res) => {
+  try {
+    const result = await mongoose.connection.db.admin().ping();
+    res.status(200).json({ message: 'Connected to MongoDB Atlas', result });
+  } catch (error) {
+    res.status(500).json({ message: 'Connection to MongoDB Atlas failed', error });
+  }
+});
 
 // Start the server
 const PORT = process.env.PORT || 3000;
