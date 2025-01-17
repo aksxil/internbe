@@ -5,17 +5,10 @@ exports.connectDatabase = async () => {
     await mongoose.connect(process.env.MONGODB_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 50000, // Optional: Set a timeout
     });
     console.log("Database Connection Established!");
   } catch (error) {
-    console.log("Error connecting to the database:", error.message);
+    console.error("Database connection error:", error.message);
   }
-
-  mongoose.connection.on('error', (err) => {
-    console.error('MongoDB connection error:', err);
-  });
-
-  mongoose.connection.once('open', () => {
-    console.log('MongoDB connected');
-  });
 };
